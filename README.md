@@ -1,6 +1,6 @@
 ## Overview
 
-This is a very simple tool that prints the S2 cell-ID in binary for a given latitude/longitude pair.
+A very simple tool that prints the S2 cell-ID, in binary, for a given latitude/longitude pair.
 
 
 ## Usage
