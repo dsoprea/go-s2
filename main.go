@@ -72,10 +72,7 @@ func handleParents() {
 
     for level := cellId.Level(); level > 0; level-- {
         parentCellId := cellId.Parent(level)
-
-        parentLl := parentCellId.LatLng()
-        parentLatitude := float64(parentLl.Lat / s1.Degree)
-        parentLongitude := float64(parentLl.Lng / s1.Degree)
+        parentLatitude, parentLongitude := coordinatesFromCell(parentCellId)
 
         fmt.Printf("%2d: %16s %064b  (%.10f, %.10f)\n", parentCellId.Level(), parentCellId.ToToken(), parentCellId, parentLatitude, parentLongitude)
     }
@@ -96,10 +93,7 @@ func handleParentsKml() {
     height := 100.0
     for level := cellId.Level(); level > 0; level-- {
         parentCellId := cellId.Parent(level)
-
-        parentLl := parentCellId.LatLng()
-        parentLatitude := float64(parentLl.Lat / s1.Degree)
-        parentLongitude := float64(parentLl.Lng / s1.Degree)
+        parentLatitude, parentLongitude := coordinatesFromCell(parentCellId)
 
         coordinate := kml.Coordinate{
             parentLatitude,
@@ -202,10 +196,15 @@ func handleCell() {
 
         fmt.Printf("Cell level: (%d)\n", cellId.Level())
 
-        ll := cellId.LatLng()
-        latitude := float64(ll.Lat / s1.Degree)
-        longitude := float64(ll.Lng / s1.Degree)
-
+        latitude, longitude := coordinatesFromCell(cellId)
         fmt.Printf("Coordinates: (%.10f), (%.10f)\n", latitude, longitude)
     }
+}
+
+func coordinatesFromCell(cellId s2.CellID) (latitude float64, longitude float64) {
+    ll := cellId.LatLng()
+    latitude = float64(ll.Lat / s1.Degree)
+    longitude = float64(ll.Lng / s1.Degree)
+
+    return latitude, longitude
 }
