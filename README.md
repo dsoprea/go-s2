@@ -6,24 +6,38 @@ A very simple tool that prints the S2 cell-ID, in binary, for a given latitude/l
 ## Install
 
 ```
-$ go get github.com/dsoprea/go-calculate-s2-location
+$ go get github.com/dsoprea/go-s2
 ```
 
 
 ## Example Usages
 
-```
-$ cd "${GOPATH}/src/github.com/dsoprea/go-calculate-s2-location"
+The following commands are obviously run from "${GOPATH}/src/github.com/dsoprea/go-s2".
 
+Just encode the location into an S2 cell token:
+
+```
 $ go run main.go cell --latitude 42.533333 --longitude -83.146389
 883b2d2febf80c13
+```
 
+Encode, but print in the binary representation:
+
+```
 $ go run main.go cell --latitude 42.331389 --longitude -83.045833 --to-binary
 1000100000111011001011010010111111101011111110000000110000010011
+```
 
+Print as a specific level (not as the default level-30 leaf cell):
+
+```
 $ go run main.go cell --latitude 42.331389 --longitude -83.045833 --to-binary --level 28
 1000100000111011001011010010111111101011111110000000110000010000
+```
 
+Print the parent hierarchy (all levels, from leaf and downwards but excluding the face):
+
+```
 $ go run main.go parents --cell-token 883b2d2febf80c13 
 30: 883b2d2febf80c13 1000100000111011001011010010111111101011111110000000110000010011  (42.3313890270, -83.0458329624)
 29: 883b2d2febf80c14 1000100000111011001011010010111111101011111110000000110000010100  (42.3313890619, -83.0458329214)
@@ -55,206 +69,18 @@ $ go run main.go parents --cell-token 883b2d2febf80c13
  3:              884 1000100001000000000000000000000000000000000000000000000000000000  (39.8711280030, -84.9401311537)
  2:               89 1000100100000000000000000000000000000000000000000000000000000000  (34.0478629694, -79.3803447238)
  1:               8c 1000110000000000000000000000000000000000000000000000000000000000  (21.0375110254, -67.3801350520)
-
-$ go run main.go parents_kml --cell-token 883b2d2febf80c13
-<kml xmlns="http://www.opengis.net/kml/2.2">
-  <Document>
-    <Style id="yellowLineGreenPoly">
-      <LineStyle>
-        <color>7f00ffff</color>
-        <width>4</width>
-      </LineStyle>
-      <PolyStyle>
-        <color>7f00ff00</color>
-      </PolyStyle>
-    </Style>
-    <Placemark>
-      <name>Level (30) 883b2d2febf80c13</name>
-      <Point>
-        <coordinates>42.331389027006594,-83.04583296240381,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (29) 883b2d2febf80c14</name>
-      <Point>
-        <coordinates>42.33138906190545,-83.04583292143717,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (28) 883b2d2febf80c1</name>
-      <Point>
-        <coordinates>42.331388982157456,-83.0458328395039,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (27) 883b2d2febf80c4</name>
-      <Point>
-        <coordinates>42.331389141653446,-83.04583300337043,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (26) 883b2d2febf80d</name>
-      <Point>
-        <coordinates>42.331389460645426,-83.04583333110348,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (25) 883b2d2febf80c</name>
-      <Point>
-        <coordinates>42.33138882266147,-83.04583267563737,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (24) 883b2d2febf81</name>
-      <Point>
-        <coordinates>42.33138993942474,-83.04583136470514,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (23) 883b2d2febf84</name>
-      <Point>
-        <coordinates>42.33139249136051,-83.04583398656959,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (22) 883b2d2febf9</name>
-      <Point>
-        <coordinates>42.331397595231536,-83.04583923029814,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (21) 883b2d2febfc</name>
-      <Point>
-        <coordinates>42.33140780297151,-83.04584971775401,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (20) 883b2d2febf</name>
-      <Point>
-        <coordinates>42.33142567117564,-83.0458287428406,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (19) 883b2d2febc</name>
-      <Point>
-        <coordinates>42.331461407549746,-83.04578679299371,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (18) 883b2d2feb</name>
-      <Point>
-        <coordinates>42.33153288016142,-83.04570289321971,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (17) 883b2d2fec</name>
-      <Point>
-        <coordinates>42.331389934756004,-83.04587069266074,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (16) 883b2d2ff</name>
-      <Point>
-        <coordinates>42.331104041760504,-83.04620629025938,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (15) 883b2d2fc</name>
-      <Point>
-        <coordinates>42.331675824838605,-83.04553509335088,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (14) 883b2d2f</name>
-      <Point>
-        <coordinates>42.3328193560396,-83.04419267899941,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (13) 883b2d2c</name>
-      <Point>
-        <coordinates>42.33510627861631,-83.04150776816577,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (12) 883b2d3</name>
-      <Point>
-        <coordinates>42.3305322470309,-83.04687748032273,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (11) 883b2d4</name>
-      <Point>
-        <coordinates>42.321381946881644,-83.05761559019146,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (10) 883b2d</name>
-      <Point>
-        <coordinates>42.30046917336352,-83.03613761803186,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (9) 883b2c</name>
-      <Point>
-        <coordinates>42.25860884987998,-82.99316066523635,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (8) 883b3</name>
-      <Point>
-        <coordinates>42.185265733050386,-83.07908654855053,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (7) 883b4</name>
-      <Point>
-        <coordinates>42.03800797489951,-83.25060073525064,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (6) 883b</name>
-      <Point>
-        <coordinates>41.70093335397801,-82.90712295690096,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (5) 883c</name>
-      <Point>
-        <coordinates>41.10291304098588,-83.59226423065375,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (4) 883</name>
-      <Point>
-        <coordinates>42.28676535824822,-82.21485985670382,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (3) 884</name>
-      <Point>
-        <coordinates>39.87112800298822,-84.94013115373588,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (2) 89</name>
-      <Point>
-        <coordinates>34.04786296943431,-79.38034472384487,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Level (1) 8c</name>
-      <Point>
-        <coordinates>21.037511025421814,-67.38013505195958,100</coordinates>
-      </Point>
-    </Placemark>
-    <Placemark>
-      <name>Cell 883b2d2febf80c13</name>
-      <styleUrl>#yellowLineGreenPoly</styleUrl>
-      <LineString>
-        <coordinates>42.331389027006594,-83.04583296240381,100 42.33138906190545,-83.04583292143717,100 42.331388982157456,-83.0458328395039,100 42.331389141653446,-83.04583300337043,100 42.331389460645426,-83.04583333110348,100 42.33138882266147,-83.04583267563737,100 42.33138993942474,-83.04583136470514,100 42.33139249136051,-83.04583398656959,100 42.331397595231536,-83.04583923029814,100 42.33140780297151,-83.04584971775401,100 42.33142567117564,-83.0458287428406,100 42.331461407549746,-83.04578679299371,100 42.33153288016142,-83.04570289321971,100 42.331389934756004,-83.04587069266074,100 42.331104041760504,-83.04620629025938,100 42.331675824838605,-83.04553509335088,100 42.3328193560396,-83.04419267899941,100 42.33510627861631,-83.04150776816577,100 42.3305322470309,-83.04687748032273,100 42.321381946881644,-83.05761559019146,100 42.30046917336352,-83.03613761803186,100 42.25860884987998,-82.99316066523635,100 42.185265733050386,-83.07908654855053,100 42.03800797489951,-83.25060073525064,100 41.70093335397801,-82.90712295690096,100 41.10291304098588,-83.59226423065375,100 42.28676535824822,-82.21485985670382,100 39.87112800298822,-84.94013115373588,100 34.04786296943431,-79.38034472384487,100 21.037511025421814,-67.38013505195958,100</coordinates>
-      </LineString>
-    </Placemark>
-  </Document>
-</kml>
 ```
+
+Generate KML showing all parents along with cell bouundaries (at or less than level 15):
+
+```
+$ go run main.go parents_kml --cell-token 883b2d2febf80c13
+```
+
+When the KML is opened in Google Earth, it will render something like:
+
+![KML Google Earth Screenshot 1](https://github.com/dsoprea/go-s2/raw/master/asset/screenshot1.png)
+![KML Google Earth Screenshot 2](https://github.com/dsoprea/go-s2/raw/master/asset/screenshot2.png)
+![KML Google Earth Screenshot 3](https://github.com/dsoprea/go-s2/raw/master/asset/screenshot3.png)
+![KML Google Earth Screenshot 4](https://github.com/dsoprea/go-s2/raw/master/asset/screenshot4.png)
+

@@ -14,6 +14,10 @@ import (
     "github.com/twpayne/go-kml"
 )
 
+const (
+    drawBoxesStartingAtLevel = 15
+)
+
 type cellParameters struct {
     Latitude  float64 `long:"latitude" description:"Latitude (decimal)" required:"true"`
     Longitude float64 `long:"longitude" description:"Longitude (decimal)" required:"true"`
@@ -87,66 +91,144 @@ func handleParentsKml() {
         os.Exit(1)
     }
 
-    polygonCoordinates := make([]kml.Coordinate, 0)
-    parentPoints := make([]kml.Element, 0)
+    lineageLineCoordinates := make([]kml.Coordinate, 0)
 
-    height := 100.0
+    // elements holds all placemarks (containers).
+    elements := make([]kml.Element, 0)
+
+    // Add style definitions.
+
+    styleLine := kml.SharedStyle(
+        "YellowLine",
+        kml.LineStyle(
+            kml.Color(color.RGBA{R: 255, G: 255, B: 0, A: 127}),
+            kml.Width(4),
+        ),
+    )
+
+    stylePlace := kml.SharedStyle(
+        "RedPlaces",
+        kml.LineStyle(
+            kml.Color(color.RGBA{R: 255, G: 0, B: 0, A: 127}),
+            kml.Width(4),
+        ),
+    )
+
+    stylePolygon := kml.SharedStyle(
+        "GreenPoly",
+        kml.LineStyle(
+            kml.Color(color.RGBA{R: 0, G: 255, B: 0, A: 127}),
+            kml.Width(10),
+        ),
+    )
+
+    elements = append(elements, styleLine, stylePlace, stylePolygon)
+
+    // Process each level.
+
+    defaultHeight := 100.0
     for level := cellId.Level(); level > 0; level-- {
         parentCellId := cellId.Parent(level)
         parentLatitude, parentLongitude := coordinatesFromCell(parentCellId)
 
         coordinate := kml.Coordinate{
-            parentLatitude,
             parentLongitude,
-            height,
+            parentLatitude,
+            defaultHeight,
         }
 
         // Attach to line.
 
-        polygonCoordinates = append(polygonCoordinates, coordinate)
+        lineageLineCoordinates = append(lineageLineCoordinates, coordinate)
 
         // Add specific placemark.
 
         parentPoint := kml.Placemark(
             kml.Name(fmt.Sprintf("Level (%d) %s", level, parentCellId.ToToken())),
+            kml.StyleURL("#RedPlaces"),
             kml.Point(
                 kml.Coordinates(coordinate),
             ),
         )
 
-        parentPoints = append(parentPoints, parentPoint)
+        elements = append(elements, parentPoint)
+
+        // Add box around placemarks where we're at a large-enough level (the
+        // higher/finer levels would be too clumped together).
+
+        if level <= drawBoxesStartingAtLevel {
+            parentCell := s2.CellFromCellID(parentCellId)
+            parentRect := parentCell.RectBound()
+
+            parentBoundsCoordinates := []kml.Coordinate{
+                // Upper left
+                kml.Coordinate{
+                    float64(s1.Angle(parentRect.Lng.Lo) / s1.Degree),
+                    float64(s1.Angle(parentRect.Lat.Hi) / s1.Degree),
+                    defaultHeight,
+                },
+
+                // Upper right
+                kml.Coordinate{
+                    float64(s1.Angle(parentRect.Lng.Hi) / s1.Degree),
+                    float64(s1.Angle(parentRect.Lat.Hi) / s1.Degree),
+                    defaultHeight,
+                },
+
+                // Lower right
+                kml.Coordinate{
+                    float64(s1.Angle(parentRect.Lng.Hi) / s1.Degree),
+                    float64(s1.Angle(parentRect.Lat.Lo) / s1.Degree),
+                    defaultHeight,
+                },
+
+                // Lower left
+                kml.Coordinate{
+                    float64(s1.Angle(parentRect.Lng.Lo) / s1.Degree),
+                    float64(s1.Angle(parentRect.Lat.Lo) / s1.Degree),
+                    defaultHeight,
+                },
+
+                // Upper left
+                kml.Coordinate{
+                    float64(s1.Angle(parentRect.Lng.Lo) / s1.Degree),
+                    float64(s1.Angle(parentRect.Lat.Hi) / s1.Degree),
+                    defaultHeight,
+                },
+            }
+
+            parentLevelPolygon := kml.Placemark(
+                kml.Name(fmt.Sprintf("Level (%d) Bounds", level)),
+                kml.StyleURL("#GreenPoly"),
+                kml.LineString(
+                    kml.Coordinates(parentBoundsCoordinates...),
+                ),
+            )
+
+            elements = append(elements, parentLevelPolygon)
+        }
     }
 
+    // Attach the line.
     parentLine := kml.Placemark(
         kml.Name(fmt.Sprintf("Cell %s", token)),
-        kml.StyleURL("#yellowLineGreenPoly"),
+        kml.StyleURL("#YellowLine"),
         kml.LineString(
-            kml.Coordinates(polygonCoordinates...),
+            kml.Coordinates(lineageLineCoordinates...),
         ),
     )
 
-    elements := make([]kml.Element, 0)
-
-    style := kml.SharedStyle(
-        "yellowLineGreenPoly",
-        kml.LineStyle(
-            kml.Color(color.RGBA{R: 255, G: 255, B: 0, A: 127}),
-            kml.Width(4),
-        ),
-        kml.PolyStyle(
-            kml.Color(color.RGBA{R: 0, G: 255, B: 0, A: 127}),
-        ),
-    )
-
-    elements = append(elements, style)
-    elements = append(elements, parentPoints...)
     elements = append(elements, parentLine)
+
+    // Build the document.
 
     k := kml.KML(
         kml.Document(
             elements...,
         ),
     )
+
+    // Render the XML.
 
     e := xml.NewEncoder(os.Stdout)
     e.Indent("", "  ")
