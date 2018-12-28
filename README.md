@@ -1,6 +1,6 @@
 ## Overview
 
-A very simple tool that prints the S2 cell-ID, in binary, for a given latitude/longitude pair.
+A tool that prints the S2 cell for a given coordinate, prints cell info,  as well as generates KML visualizations of cell parents and boundaries.
 
 
 ## Install
