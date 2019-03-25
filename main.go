@@ -19,8 +19,10 @@ const (
 )
 
 type cellParameters struct {
-    Latitude  float64 `long:"latitude" description:"Latitude (decimal)" required:"true"`
-    Longitude float64 `long:"longitude" description:"Longitude (decimal)" required:"true"`
+    CellId    uint64  `long:"cell-id" description:"S2 cell-ID"`
+    Token     string  `long:"token" description:"S2 token"`
+    Latitude  float64 `long:"latitude" description:"Latitude (decimal)"`
+    Longitude float64 `long:"longitude" description:"Longitude (decimal)"`
     ToBinary  bool    `long:"to-binary" description:"Print as binary"`
     IsVerbose bool    `short:"v" long:"verbose" description:"Be verbose"`
     Level     int     `long:"level" description:"Specific level (defaults to 30)" default:"-1"`
@@ -238,26 +240,40 @@ func handleParentsKml() {
 }
 
 func handleCell() {
-    // This is used rather than s2.LatLng() because that won't convert
-    // properly:
-    //
-    //   ll := s2.LatLng{
-    //       s1.Angle(arguments.Latitude),
-    //       s1.Angle(arguments.Longitude),
-    //   }
-    //
-    //   ll = ll.Normalized()
-    //
-    // It won't convert back to the original latitude/longitude (maybe one,
-    // but not both).
-    ll := s2.LatLngFromDegrees(arguments.Cell.Latitude, arguments.Cell.Longitude)
+    var cellId s2.CellID
+    if arguments.Cell.CellId != uint64(0) {
+        cellId = s2.CellID(arguments.Cell.CellId)
+    } else if arguments.Cell.Token != "" {
+        cellId = s2.CellIDFromToken(arguments.Cell.Token)
+    } else {
+        if arguments.Cell.Latitude == 0.0 || arguments.Cell.Longitude == 0.0 {
+            fmt.Printf("Please provide a token or latitude and longitude.\n")
+            os.Exit(1)
+        }
 
-    if ll.IsValid() == false {
-        fmt.Printf("Coordinates not valid.\n")
-        os.Exit(2)
+        // This is used rather than s2.LatLng() because that won't convert
+        // properly:
+        //
+        //   ll := s2.LatLng{
+        //       s1.Angle(arguments.Latitude),
+        //       s1.Angle(arguments.Longitude),
+        //   }
+        //
+        //   ll = ll.Normalized()
+        //
+        // It won't convert back to the original latitude/longitude (maybe one,
+        // but not both).
+
+        ll := s2.LatLngFromDegrees(arguments.Cell.Latitude, arguments.Cell.Longitude)
+
+        if ll.IsValid() == false {
+            fmt.Printf("Coordinates not valid.\n")
+            os.Exit(2)
+        }
+
+        cellId = s2.CellIDFromLatLng(ll)
     }
 
-    cellId := s2.CellIDFromLatLng(ll)
     if cellId.IsValid() == false {
         fmt.Printf("Cell not valid.\n")
         os.Exit(3)
